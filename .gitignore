@@ -1,6 +1,9 @@
 # Mac OS
 .DS_Store
 
+# Nanodegree specific
+Course Videos and Transcripts/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
