@@ -3,7 +3,6 @@
 
 # Nanodegree-specific
 *Videos and Transcripts*/
-*.pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
