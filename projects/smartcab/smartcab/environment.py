@@ -11,10 +11,10 @@ class TrafficLight(object):
     valid_states = [True, False]  # True = NS open, False = EW open
 
     def __init__(self, state=None, period=None):
-        self.state = state if state is not None else random.choice(
-            self.valid_states)
-        self.period = period if period is not None else random.choice(
-            [3, 4, 5])
+        self.state = (state if state is not None
+                      else random.choice(self.valid_states))
+        self.period = (period if period is not None
+                       else random.choice([3, 4, 5]))
         self.last_updated = 0
 
     def reset(self):
@@ -34,8 +34,9 @@ class Environment(object):
                     'oncoming':valid_actions, 'left':valid_actions,
                     'right':valid_actions}
     valid_headings = [(1, 0), (0, -1), (-1, 0), (0, 1)]  # ENWS
-    hard_time_limit = -100  # even if enforce_deadline is False, end trial
+    # even if enforce_deadline is False, end trial
     # when deadline reaches this value (to avoid deadlocks)
+    hard_time_limit = -100
 
     def __init__(self, num_dummies=3):
         self.num_dummies = num_dummies  # no. of dummy agents
@@ -43,28 +44,30 @@ class Environment(object):
         # Initialize simulation variables
         self.done = False
         self.t = 0
+
+        # dict of dicts, contains location and heading values for each state
         self.agent_states = OrderedDict()
+
         self.status_text = ""
 
         # Road network
         self.grid_size = (8, 6)  # (cols, rows)
         self.bounds = (1, 1, self.grid_size[0], self.grid_size[1])
-        self.block_size = 100
+        self.block_size = 100  # for draw
+
+        # traffic lights matched to intersections
         self.intersections = OrderedDict()
         self.roads = []
         for x in xrange(self.bounds[0], self.bounds[2] + 1):
             for y in xrange(self.bounds[1], self.bounds[3] + 1):
-                self.intersections[(
-                    x,
-                    y)] = TrafficLight()  # a traffic light at each
-                # intersection
+                # a traffic light at each intersection
+                self.intersections[(x, y)] = TrafficLight()
 
         for a in self.intersections:
             for b in self.intersections:
                 if a == b:
                     continue
-                if (abs(a[0] - b[0]) + abs(
-                            a[1] - b[1])) == 1:  # L1 distance = 1
+                if (abs(a[0] - b[0]) + abs(a[1] - b[1])) == 1:  # L1 distance
                     self.roads.append((a, b))
 
         # Dummy agents
@@ -105,9 +108,9 @@ class Environment(object):
 
         start_heading = random.choice(self.valid_headings)
         deadline = self.compute_dist(start, destination) * 5
-        print "Environment.reset(): Trial set up with start = {}, " \
-              "destination = {}, deadline = {}".format(
-            start, destination, deadline)
+        print ("Environment.reset(): Trial set up with start = {}, "
+               "destination = {}, deadline = {}"
+                  .format(start, destination, deadline))
 
         # Initialize agent(s)
         for agent in self.agent_states.iterkeys():
@@ -142,15 +145,14 @@ class Environment(object):
             agent_deadline = self.agent_states[self.primary_agent]['deadline']
             if agent_deadline <= self.hard_time_limit:
                 self.done = True
-                print "Environment.step(): Primary agent hit hard time limit " \
-                      "({})! Trial aborted.".format(
-                    self.hard_time_limit)
+                print ("Environment.step(): Primary agent hit hard time limit "
+                       "({})! Trial aborted.".format(self.hard_time_limit))
             elif self.enforce_deadline and agent_deadline <= 0:
                 self.done = True
-                print "Environment.step(): Primary agent ran out of time! " \
-                      "Trial aborted."
-            self.agent_states[self.primary_agent][
-                'deadline'] = agent_deadline - 1
+                print ("Environment.step(): Primary agent ran out of time! "
+                       "Trial aborted.")
+            self.agent_states[
+                self.primary_agent]['deadline'] = agent_deadline - 1
 
         self.t += 1
 
@@ -160,9 +162,11 @@ class Environment(object):
         state = self.agent_states[agent]
         location = state['location']
         heading = state['heading']
-        light = 'green' if (self.intersections[location].state and heading[
-            1] != 0) or ((not self.intersections[location].state) and heading[
-            0] != 0) else 'red'
+        light = ('green' if (self.intersections[location].state
+                             and heading[1] != 0)  # NS open and heading
+                            or ((not self.intersections[location].state)
+                             and heading[0] != 0)  # EW open and heading
+                 else 'red')
 
         # Populate oncoming, left, right
         oncoming = None
@@ -210,34 +214,36 @@ class Environment(object):
 
         # Move agent if within bounds and obeys traffic rules
         reward = 0  # reward/penalty
-        move_okay = True
+        move_okay = True  # default remains for null action
         if action == 'forward':
             if light != 'green':
                 move_okay = False
-        elif action == 'left':
-            if light == 'green' and (inputs['oncoming'] == None or inputs[
-                'oncoming'] == 'left'):
-                heading = (heading[1], -heading[0])
+        elif action == 'left':  # yield to oncoming traffic if green light
+            if (light == 'green' and
+                (inputs['oncoming'] == None or inputs['oncoming'] == 'left')):
+                heading = (heading[1], -heading[0])  # heading to the left
             else:
                 move_okay = False
-        elif action == 'right':
+        elif action == 'right':  # right on red if no traffic in the way
             if light == 'green' or inputs['left'] != 'forward':
                 heading = (-heading[1], heading[0])
             else:
                 move_okay = False
-
+        #assert move_okay == (light == 'green')
         if move_okay:
             # Valid move (could be null)
             if action is not None:
                 # Valid non-null move
-                location = ((location[0] + heading[0] - self.bounds[0]) % (
-                    self.bounds[2] - self.bounds[0] + 1) + self.bounds[0],
-                            (location[1] + heading[1] - self.bounds[1]) % (
-                                self.bounds[3] - self.bounds[1] + 1) +
-                            self.bounds[
-                                1])  # wrap-around
+                # wrap-around
+                location = (
+                    (location[0] + heading[0] - self.bounds[0]) %
+                        (self.bounds[2] - self.bounds[0] + 1) + self.bounds[0],
+                    (location[1] + heading[1] - self.bounds[1]) %
+                        (self.bounds[3] - self.bounds[1] + 1) + self.bounds[1])
+                # bounded
                 # if self.bounds[0] <= location[0] <= self.bounds[2] and
-                # self.bounds[1] <= location[1] <= self.bounds[3]:  # bounded
+                # self.bounds[1] <= location[1] <= self.bounds[3]:
+                #
                 state['location'] = location
                 state['heading'] = heading
                 reward = 2.0 if action == agent.get_next_waypoint() else \
@@ -254,10 +260,10 @@ class Environment(object):
                 if state['deadline'] >= 0:
                     reward += 10  # bonus
                 self.done = True
-                print "Environment.act(): Primary agent has reached " \
-                      "destination!"  # [debug]
-            self.status_text = "state: {}\naction: {}\nreward: {}".format(
-                agent.get_state(), action, reward)
+                print ("Environment.act(): Primary agent has reached ",
+                      "destination!")  # [debug]
+            self.status_text = ("state: {}\naction: {}\nreward: {}"
+                                .format(agent.get_state(), action, reward))
             # print "Environment.act() [POST]: location: {}, heading: {},
             # action: {}, reward: {}".format(location, heading, action,
             # reward)  # [debug]

@@ -55,10 +55,8 @@ class Simulator(object):
                 # when using simple representation
                 for agent in self.env.agent_states:
                     agent._sprite = self.pygame.transform.smoothscale(
-                        self.pygame.image.load(os.path.join("images",
-                                                            "car-{"
-                                                            "}.png".format(
-                                                                agent.color))),
+                        self.pygame.image.load(os.path.join(
+                            "images", "car-{}.png".format(agent.color))),
                         self.agent_sprite_size)
                     agent._sprite_size = (
                     agent._sprite.get_width(), agent._sprite.get_height())
@@ -67,14 +65,14 @@ class Simulator(object):
                 self.paused = False
             except ImportError as e:
                 self.display = False
-                print "Simulator.__init__(): Unable to import pygame; " \
-                      "display disabled.\n{}: {}".format(
-                    e.__class__.__name__, e)
+                print ("Simulator.__init__(): Unable to import pygame; "
+                       "display disabled.\n{}: {}"
+                       .format(e.__class__.__name__, e))
             except Exception as e:
                 self.display = False
-                print "Simulator.__init__(): Error initializing GUI objects; " \
-                      "display disabled.\n{}: {}".format(
-                    e.__class__.__name__, e)
+                print ("Simulator.__init__(): Error initializing GUI objects; "
+                       "display disabled.\n{}: {}"
+                       .format(e.__class__.__name__, e))
 
     def run(self, n_trials=1):
         self.quit = False
@@ -97,17 +95,17 @@ class Simulator(object):
                             if event.type == self.pygame.QUIT:
                                 self.quit = True
                             elif event.type == self.pygame.KEYDOWN:
-                                if event.key == 27:  # Esc
+                                if event.key == 27:  # Esc key
                                     self.quit = True
-                                elif event.unicode == u' ':
+                                elif event.unicode == u' ':  # space bar
                                     self.paused = True
 
                         if self.paused:
                             self.pause()
 
                     # Update environment
-                    if self.current_time - self.last_updated >= \
-                            self.update_delay:
+                    if (self.current_time - self.last_updated
+                        >= self.update_delay):
                         self.env.step()
                         self.last_updated = self.current_time
 

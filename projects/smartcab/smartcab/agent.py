@@ -8,41 +8,42 @@ class LearningAgent(Agent):
     """An agent that learns to drive in the smartcab world."""
 
     def __init__(self, env):
-        super(LearningAgent, self).__init__(
-            env)  # sets self.env = env, state = None, next_waypoint = None,
+        # sets self.env = env, state = None, next_waypoint = None,
         #  and a default color
+        super(LearningAgent, self).__init__(env)
         self.color = 'red'  # override color
-        self.planner = RoutePlanner(self.env,
-                                    self)  # simple route planner to get
-        # next_waypoint
+
+        # simple route planner to get next_waypoint
+        self.planner = RoutePlanner(self.env, self)
         # TODO: Initialize any additional variables here
 
     def reset(self, destination=None):
         self.planner.route_to(destination)
         # TODO: Prepare for a new trip; reset any variables here, if required
+        self.next_waypoint = random.choice(Environment.valid_actions)
 
     def update(self, t):
         # Gather inputs
-        self.next_waypoint = self.planner.next_waypoint()  # from route
-        # planner, also displayed by simulator
         inputs = self.env.sense(self)
         deadline = self.env.get_deadline(self)
+        # from route planner, also displayed by simulator
+        # self.next_waypoint = self.planner.next_waypoint()
 
         # TODO: Update state
 
-        # TODO: Select action according to your policy
-        action = None
 
+        # TODO: Select action according to your policy
         # Execute action and get reward
+        action = self.next_waypoint
+        self.next_waypoint = random.choice(Environment.valid_actions)
         reward = self.env.act(self, action)
+
 
         # TODO: Learn policy based on state, action, reward
 
-        print "LearningAgent.update(): deadline = {}, inputs = {}, action = " \
-              "{}, reward = {}".format(
-            deadline, inputs,
-            action,
-            reward)  # [debug]
+        # print ("LearningAgent.update(): deadline = {}, inputs = {}, action = "
+        #       "{}, reward = {}".format(deadline, inputs,
+        #                                action, reward))  # [debug]
 
 
 def run():
@@ -51,14 +52,13 @@ def run():
     # Set up environment and agent
     e = Environment()  # create environment (also adds some dummy traffic)
     a = e.create_agent(LearningAgent)  # create agent
-    e.set_primary_agent(a, enforce_deadline=True)  # specify agent to track
+    e.set_primary_agent(a, enforce_deadline=False)  # specify agent to track
     # NOTE: You can set enforce_deadline=False while debugging to allow
     # longer trials
 
-    # Now simulate it
+    # create simulator (uses pygame when display=True, if available)
     sim = Simulator(e, update_delay=0.5,
-                    display=True)  # create simulator (uses pygame when
-    # display=True, if available)
+                    display=True)
     # NOTE: To speed up simulation, reduce update_delay and/or set
     # display=False
 
