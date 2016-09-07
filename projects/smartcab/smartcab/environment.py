@@ -173,10 +173,9 @@ class Environment(object):
         left = None
         right = None
         for other_agent, other_state in self.agent_states.iteritems():
-            if agent == other_agent or location != other_state['location'] or (
-                            heading[0] == other_state['heading'][0] and
-                            heading[1] ==
-                            other_state['heading'][1]):
+            if (agent == other_agent or location != other_state['location']
+                or (heading[0] == other_state['heading'][0]
+                    and heading[1] == other_state['heading'][1])):
                 continue
             other_heading = other_agent.get_next_waypoint()
             if (heading[0] * other_state['heading'][0] + heading[1] *
@@ -186,19 +185,20 @@ class Environment(object):
                     oncoming = other_heading
             elif (heading[1] == other_state['heading'][0] and -heading[0] ==
                 other_state['heading'][1]):
-                if right != 'forward' and right != 'left':  # we don't want
-                    # to override right == 'forward or 'left'
+                # we don't want to override right == 'forward or 'left'
+                if right != 'forward' and right != 'left':
                     right = other_heading
             else:
-                if left != 'forward':  # we don't want to override left ==
-                    # 'forward'
+                # we don't want to override left == 'forward'
+                if left != 'forward':
                     left = other_heading
 
         return {'light':light, 'oncoming':oncoming, 'left':left, 'right':right}
 
     def get_deadline(self, agent):
-        return self.agent_states[agent][
-            'deadline'] if agent is self.primary_agent else None
+        return (self.agent_states[agent]['deadline']
+                if agent is self.primary_agent
+                else None)
 
     def act(self, agent, action):
         assert agent in self.agent_states, "Unknown agent!"
@@ -207,9 +207,11 @@ class Environment(object):
         state = self.agent_states[agent]
         location = state['location']
         heading = state['heading']
-        light = 'green' if (self.intersections[location].state and heading[
-            1] != 0) or ((not self.intersections[location].state) and heading[
-            0] != 0) else 'red'
+        light = ('green' if (self.intersections[location].state and
+                             heading[1] != 0) or
+                            ((not self.intersections[location].state) and
+                             heading[0] != 0)
+                 else 'red')
         inputs = self.sense(agent)
 
         # Move agent if within bounds and obeys traffic rules
@@ -231,9 +233,9 @@ class Environment(object):
                 move_okay = False
         #assert move_okay == (light == 'green')
         if move_okay:
-            # Valid move (could be null)
+            # Legal move (could be null)
             if action is not None:
-                # Valid non-null move
+                # Legal non-null move
                 # wrap-around
                 location = (
                     (location[0] + heading[0] - self.bounds[0]) %
@@ -246,13 +248,13 @@ class Environment(object):
                 #
                 state['location'] = location
                 state['heading'] = heading
-                reward = 2.0 if action == agent.get_next_waypoint() else \
-                    -0.5  # valid, but is it correct? (as per waypoint)
+                # Legal ("valid?"), but is it correct? (as per waypoint)
+                reward = 2.0 if action == agent.get_next_waypoint() else -0.5
             else:
-                # Valid null move
+                # Legal null move
                 reward = 0.0
         else:
-            # Invalid move
+            # Illegal move
             reward = -1.0
 
         if agent is self.primary_agent:
@@ -260,10 +262,19 @@ class Environment(object):
                 if state['deadline'] >= 0:
                     reward += 10  # bonus
                 self.done = True
-                print ("Environment.act(): Primary agent has reached ",
-                      "destination!")  # [debug]
+                print ("Environment.act(): Primary agent has reached "
+                       "destination!")  # [debug]
+
+            state_text = ''
+            for state, val in agent.get_state()._asdict().iteritems():
+                if state == 'headings_legality':
+                    state_text += '\n'
+                state_text += state + ': ' + str(val) + ' '
+
+
+            #str(get_state()[0] + `\n` + str(get_state()[0]
             self.status_text = ("state: {}\naction: {}\nreward: {}"
-                                .format(agent.get_state(), action, reward))
+                                .format(state_text, action, reward))
             # print "Environment.act() [POST]: location: {}, heading: {},
             # action: {}, reward: {}".format(location, heading, action,
             # reward)  # [debug]
