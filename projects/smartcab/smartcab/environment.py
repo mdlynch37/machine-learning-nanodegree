@@ -145,13 +145,13 @@ class Environment(object):
             agent_deadline = self.agent_states[self.primary_agent]['deadline']
             if agent_deadline <= self.hard_time_limit:
                 self.done = True
-                # print ("Environment.step(): Primary agent hit hard time limit "
-                #        "({})! Trial aborted.".format(self.hard_time_limit))
+                print ("Environment.step(): Primary agent hit hard time limit "
+                       "({})! Trial aborted.".format(self.hard_time_limit))
             elif self.enforce_deadline and agent_deadline <= 0:
                 self.done = True
                 self.primary_agent.missed_deadline += [True]
-                # print ("Environment.step(): Primary agent ran out of time! "
-                #        "Trial aborted.")
+                print ("Environment.step(): Primary agent ran out of time! "
+                       "Trial aborted.")
             self.agent_states[
                 self.primary_agent]['deadline'] = agent_deadline - 1
 
@@ -264,8 +264,8 @@ class Environment(object):
                     reward += 10  # bonus
                 self.done = True
                 self.primary_agent.missed_deadline += [False]
-                # print ("Environment.act(): Primary agent has reached "
-                #        "destination!")  # [debug]
+                print ("Environment.act(): Primary agent has reached "
+                       "destination!")  # [debug]
 
             state_text = ''
             for state, val in agent.get_state()._asdict().iteritems():
