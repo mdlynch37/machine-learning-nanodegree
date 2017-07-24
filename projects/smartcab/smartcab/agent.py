@@ -8,12 +8,14 @@ from copy import deepcopy
 # Note that 'right' input variable is not included since this would have no
 # impact on the reward since, on its own, it has no impact on the legality on
 # any action the learning agent might take.
-State = namedtuple('State', ['next_waypoint', 'light',
-                             'oncoming', 'left'])
+
 
 
 class LearningAgent(Agent):
     """An agent that learns to drive in the smartcab world."""
+
+    State = namedtuple('State', ['next_waypoint', 'light',
+                                 'oncoming', 'left'])
 
     def __init__(self, env):
         # sets self.env = env, state = None, next_waypoint = None,
@@ -89,10 +91,10 @@ class LearningAgent(Agent):
         # state_prime, so that q_table can be updated with it and other
         # necessary variables carried over from previous update.
         # This should be clear from the code here and in update_q_table().
-        state_prime = State(next_waypoint=self.next_waypoint,
-                            light=self.inputs['light'],
-                            oncoming=self.inputs['oncoming'],
-                            left=self.inputs['left'])
+        state_prime = LearningAgent.State(next_waypoint=self.next_waypoint,
+                                          light=self.inputs['light'],
+                                          oncoming=self.inputs['oncoming'],
+                                          left=self.inputs['left'])
         self.update_q_table(self.state, self.action, self.reward, state_prime)
         self.state = state_prime
 
