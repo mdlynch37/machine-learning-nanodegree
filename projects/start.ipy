@@ -1,0 +1,5 @@
+UDACITY_PATH = '~/projects/udacity/intro_to_ml/ud120-projects'
+if not UDACITY_PATH in sys.path:
+    sys.path.append(UDACITY_PATH)
+
+from copy import deepcopy
